@@ -47,6 +47,8 @@ namespace omnidirectional_controllers {
         nav_msgs::msg::Odometry latest_odom_msg;
         geometry_msgs::msg::PoseStamped latest_pose_sp;
         geometry_msgs::msg::Twist twist_sp;
+        int64_t loop_dur_us;
+        PGains gains;
         //
     };
 }

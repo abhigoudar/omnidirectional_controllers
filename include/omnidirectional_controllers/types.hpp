@@ -47,6 +47,12 @@ struct RobotPose {
   double theta;    // [rad]
 };
 
+// Proportional controller gains for 2D
+struct PGains{
+  double x; //
+  double y; // 
+  double w; //
+};
 // clamp rotation between (-PI, PI)
 template<typename T>
 static T clampRotation(T rotation)

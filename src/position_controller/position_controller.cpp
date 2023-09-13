@@ -27,7 +27,17 @@ namespace omnidirectional_controllers{
     //
     void PositionController::loadConfig()
     {
-
+        gains.x = controller_config["proportional_controller"]["gains"]["x"].as<double>();
+        gains.y = controller_config["proportional_controller"]["gains"]["y"].as<double>();
+        gains.w = controller_config["proportional_controller"]["gains"]["w"].as<double>();
+        RCLCPP_INFO(node->get_logger(),
+        " Proportional position controller:x:[%.3f] y:[%.3f] w:[%.3f]",
+        gains.x, gains.y, gains.w);
+        //
+        int loop_rate = controller_config["proportional_controller"]["rate"].as<int>();
+        loop_rate = std::max(5, std::min(100, loop_rate));
+        loop_dur_us = static_cast<uint64_t>(1.0/loop_rate * 1000LL * 1000LL); // loop duration count in micro seconds
+        RCLCPP_INFO(node->get_logger(), " Loop duration (microseconds):[%ld]", loop_dur_us);
     }
     //
     void PositionController::initialize()
@@ -84,8 +94,8 @@ namespace omnidirectional_controllers{
             auto loop_dur = ::duration_cast<::microseconds>(
                 iter_end - iter_start).count();
             //
-            if(loop_dur < 20000)
-                std::this_thread::sleep_for(::microseconds(20000 - loop_dur));
+            if(loop_dur < loop_dur_us)
+                std::this_thread::sleep_for(::microseconds(loop_dur_us - loop_dur));
 
             iter_end = ::steady_clock::now();
             loop_dur = ::duration_cast<::milliseconds>(
@@ -107,16 +117,15 @@ namespace omnidirectional_controllers{
         double sp_yaw = tf2::getYaw(latest_pose_sp.pose.orientation);
         double curr_yaw = tf2::getYaw(latest_odom_msg.pose.pose.orientation);
         double ew = clampRotation<double>(sp_yaw - curr_yaw);
-
         // Transform world-referenced setpoint into body-referenced setpoint
         tf2::Quaternion qwb;
         qwb.setRPY(0, 0, curr_yaw);
         tf2::Matrix3x3 R(qwb.inverse());
         tf2::Vector3 epb = R * epw;
-
-        twist_sp.linear.x = epb.x();
-        twist_sp.linear.y = epb.y();
-        twist_sp.angular.z = ew;
+        // Simple proportional controller
+        twist_sp.linear.x = gains.x * epb.x();
+        twist_sp.linear.y = gains.y * epb.y();
+        twist_sp.angular.z = gains.w * ew;
         // printf("Error: epwx:[%.3f] epbx:[%.3f] epwy:[%.3f] epby:[%.3f] ew:[%.3f]\n", 
         //     epw[0], twist_sp.linear.x, epw[1], twist_sp.linear.y,  twist_sp.angular.z);
     }
