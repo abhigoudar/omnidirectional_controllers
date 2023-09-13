@@ -23,6 +23,8 @@
 #ifndef OMNIDIRECTIONAL_CONTROLLERS__TYPES_HPP_
 #define OMNIDIRECTIONAL_CONTROLLERS__TYPES_HPP_
 
+#include <cmath>
+
 #define DEG2RAD(deg) (deg * M_PI / 180.0)
 
 namespace omnidirectional_controllers {
@@ -45,6 +47,16 @@ struct RobotPose {
   double theta;    // [rad]
 };
 
+// clamp rotation between (-PI, PI)
+template<typename T>
+static T clampRotation(T rotation)
+{
+    while (rotation > static_cast<T>(M_PI))
+        rotation -= 2*static_cast<T>(M_PI);
+    while (rotation < -static_cast<T>(M_PI))
+        rotation += 2*static_cast<T>(M_PI);
+    return rotation;
+}
 
 }  // namespace omnidirectional_controllers
 

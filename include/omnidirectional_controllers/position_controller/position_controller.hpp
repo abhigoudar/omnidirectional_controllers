@@ -12,6 +12,8 @@
 
 #include <tf2/utils.h>
 
+#include <omnidirectional_controllers/types.hpp>
+
 using namespace std::chrono;
 using namespace std::chrono_literals;
 

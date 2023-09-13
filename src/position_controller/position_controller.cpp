@@ -40,7 +40,7 @@ namespace omnidirectional_controllers{
             std::bind(&PositionController::poseSetpointCallback, this, std::placeholders::_1));
         //
         odom_sub = node->create_subscription<nav_msgs::msg::Odometry>
-            ("odom", rclcpp::SensorDataQoS(),
+            ("odometry_source", rclcpp::SensorDataQoS(),
             std::bind(&PositionController::odometryCallback, this, std::placeholders::_1));
         //
         twist_sp_pub = node->create_publisher<geometry_msgs::msg::Twist>
@@ -66,12 +66,13 @@ namespace omnidirectional_controllers{
             //
             auto iter_start = ::steady_clock::now();
             auto now = node->get_clock()->now();
-            if(fabs(now.seconds() - latest_odom_msg.header.stamp.sec) > 1.0)
+            if(fabs(now.seconds() - latest_odom_msg.header.stamp.sec) > 2.0)
             {
                 RCLCPP_WARN_THROTTLE(node->get_logger(),
                     *(node->get_clock()),
                     ::milliseconds(1000).count(),
-                    ": Odometry too old (>1s). Controller wont run");
+                    ": Odometry too old (>1s). odom:[%d] now:[%.3f]",
+                       latest_odom_msg.header.stamp.sec, now.seconds());
             }
             else
             {
@@ -99,15 +100,25 @@ namespace omnidirectional_controllers{
     //
     void PositionController::update()
     {
+        tf2::Vector3 epw(0,0,0);
+        epw[0] = latest_pose_sp.pose.position.x - latest_odom_msg.pose.pose.position.x;
+        epw[1] = latest_pose_sp.pose.position.y - latest_odom_msg.pose.pose.position.y;
+        // TODO: Wrap and clamp
         double sp_yaw = tf2::getYaw(latest_pose_sp.pose.orientation);
         double curr_yaw = tf2::getYaw(latest_odom_msg.pose.pose.orientation);
-        double epx = latest_pose_sp.pose.position.x - latest_odom_msg.pose.pose.position.x;
-        double epy = latest_pose_sp.pose.position.y - latest_odom_msg.pose.pose.position.y;
-        // TODO: Wrap and clamp
-        double ew = (sp_yaw - curr_yaw);
-        twist_sp.linear.x = epx;
-        twist_sp.linear.y = epy;
+        double ew = clampRotation<double>(sp_yaw - curr_yaw);
+
+        // Transform world-referenced setpoint into body-referenced setpoint
+        tf2::Quaternion qwb;
+        qwb.setRPY(0, 0, curr_yaw);
+        tf2::Matrix3x3 R(qwb.inverse());
+        tf2::Vector3 epb = R * epw;
+
+        twist_sp.linear.x = epb.x();
+        twist_sp.linear.y = epb.y();
         twist_sp.angular.z = ew;
+        // printf("Error: epwx:[%.3f] epbx:[%.3f] epwy:[%.3f] epby:[%.3f] ew:[%.3f]\n", 
+        //     epw[0], twist_sp.linear.x, epw[1], twist_sp.linear.y,  twist_sp.angular.z);
     }
 }
 
