@@ -20,47 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_
-#define OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_
+#ifndef OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_
+#define OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_
 
-#include <string>
+#include <memory>
 #include <vector>
 
-#include "omnidirectional_controllers/kinematics.hpp"
 #include "omnidirectional_controllers/types.hpp"
 
 namespace omnidirectional_controllers {
 
-constexpr char EULER_FORWARD[] = "euler_forward";
-constexpr char RUNGE_KUTTA2[] = "runge_kutta2";
+constexpr double OMNI_ROBOT_MAX_WHEELS = 4;
 
-class Odometry {
+class Kinematics {
  public:
-  Odometry();
-  ~Odometry();
-  bool setNumericIntegrationMethod(const std::string & numeric_integration_method);
-  void setRobotParams(RobotParams params);
-  void updateOpenLoop(RobotVelocity vel, double dt);
-  void update(const std::vector<double> & wheels_vel, double dt);
-  RobotPose getPose() const;
-  RobotVelocity getBodyVelocity() const;
-  void reset();
-
- protected:
-  void integrateByRungeKutta();
-  void integrateByEuler();
-  void integrateVelocities();
-  RobotVelocity body_vel_{0, 0, 0};
-  double dt_;
-
+  explicit Kinematics(RobotParams robot_params);
+  Kinematics();
+  ~Kinematics();
+  // Forward kinematics
+  RobotVelocity getBodyVelocity(const std::vector<double> & wheels_vel);
+  // Inverse kinematics
+  std::vector<double> getWheelsAngularVelocities(RobotVelocity vel);
+  void setRobotParams(RobotParams robot_params);
  private:
-  RobotPose pose_{0, 0, 0};
-  RobotParams robot_params_{0, 0, 0};
-  std::string numeric_integration_method_ = EULER_FORWARD;
-  Kinematics robot_kinematics_;
-  bool is_robot_param_set_{false};
+  void initializeParams();
+  RobotParams robot_params_;
+  std::vector<double> angular_vel_vec_;
+  double k2_, k1_, k0_;
 };
 
 }  // namespace omnidirectional_controllers
 
-#endif  // OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_
+#endif  // OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_

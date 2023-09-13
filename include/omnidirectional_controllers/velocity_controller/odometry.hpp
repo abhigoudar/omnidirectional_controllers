@@ -20,38 +20,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_
-#define OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_
+#ifndef OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_
+#define OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_
 
-#include <memory>
+#include <string>
 #include <vector>
 
+#include "omnidirectional_controllers/velocity_controller/kinematics.hpp"
 #include "omnidirectional_controllers/types.hpp"
 
 namespace omnidirectional_controllers {
 
-constexpr double OMNI_ROBOT_MAX_WHEELS = 4;
+constexpr char EULER_FORWARD[] = "euler_forward";
+constexpr char RUNGE_KUTTA2[] = "runge_kutta2";
 
-class Kinematics {
+class Odometry {
  public:
-  explicit Kinematics(RobotParams robot_params);
-  Kinematics();
-  ~Kinematics();
-  // Forward kinematics
-  RobotVelocity getBodyVelocity(const std::vector<double> & wheels_vel);
-  // Inverse kinematics
-  std::vector<double> getWheelsAngularVelocities(RobotVelocity vel);
-  void setRobotParams(RobotParams robot_params);
+  Odometry();
+  ~Odometry();
+  bool setNumericIntegrationMethod(const std::string & numeric_integration_method);
+  void setRobotParams(RobotParams params);
+  void updateOpenLoop(RobotVelocity vel, double dt);
+  void update(const std::vector<double> & wheels_vel, double dt);
+  RobotPose getPose() const;
+  RobotVelocity getBodyVelocity() const;
+  void reset();
+
+ protected:
+  void integrateByRungeKutta();
+  void integrateByEuler();
+  void integrateVelocities();
+  RobotVelocity body_vel_{0, 0, 0};
+  double dt_;
+
  private:
-  void initializeParams();
-  RobotParams robot_params_;
-  std::vector<double> angular_vel_vec_;
-  double cos_gamma_;
-  double sin_gamma_;
-  double alpha_;
-  double beta_;
+  RobotPose pose_{0, 0, 0};
+  RobotParams robot_params_{0, 0, 0};
+  std::string numeric_integration_method_ = EULER_FORWARD;
+  Kinematics robot_kinematics_;
+  bool is_robot_param_set_{false};
 };
 
 }  // namespace omnidirectional_controllers
 
-#endif  // OMNIDIRECTIONAL_CONTROLLERS__KINEMATICS_HPP_
+#endif  // OMNIDIRECTIONAL_CONTROLLERS__ODOMETRY_HPP_

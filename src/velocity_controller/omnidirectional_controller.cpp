@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "omnidirectional_controllers/omnidirectional_controller.hpp"
+#include "omnidirectional_controllers/velocity_controller/omnidirectional_controller.hpp"
 
 #include <chrono>  // NOLINT
 #include <cmath>
@@ -378,8 +378,13 @@ controller_interface::return_type OmnidirectionalController::update() {
     odometry_message_.pose.pose.orientation.y = orientation.y();
     odometry_message_.pose.pose.orientation.z = orientation.z();
     odometry_message_.pose.pose.orientation.w = orientation.w();
-    odometry_message_.twist.twist.linear = cmd_vel_->twist.linear;
-    odometry_message_.twist.twist.angular = cmd_vel_->twist.angular;
+    odometry_message_.twist.twist.linear.x = odometry_.getBodyVelocity().vx;
+    odometry_message_.twist.twist.linear.y = odometry_.getBodyVelocity().vy;
+    odometry_message_.twist.twist.linear.z = 0;
+    odometry_message_.twist.twist.angular.x = 0;
+    odometry_message_.twist.twist.angular.y = 0;
+    odometry_message_.twist.twist.angular.z = odometry_.getBodyVelocity().omega;
+
     odometry_publisher_->publish(odometry_message_);
   }
 

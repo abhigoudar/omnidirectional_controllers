@@ -35,8 +35,8 @@
 #include "rclcpp_lifecycle/state.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
 
-#include "omnidirectional_controllers/kinematics.hpp"
-#include "omnidirectional_controllers/odometry.hpp"
+#include "omnidirectional_controllers/velocity_controller/kinematics.hpp"
+#include "omnidirectional_controllers/velocity_controller/odometry.hpp"
 #include "omnidirectional_controllers/types.hpp"
 
 namespace omnidirectional_controllers {

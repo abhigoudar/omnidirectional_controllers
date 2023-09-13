@@ -26,7 +26,7 @@
 #include <exception>
 #include <vector>
 
-#include "omnidirectional_controllers/odometry.hpp"
+#include "omnidirectional_controllers/velocity_controller/odometry.hpp"
 #include "omnidirectional_controllers/types.hpp"
 
 constexpr double TOLERANCE = 1e-6;

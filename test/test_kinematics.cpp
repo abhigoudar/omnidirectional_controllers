@@ -24,7 +24,7 @@
 
 #include <vector>
 
-#include "omnidirectional_controllers/kinematics.hpp"
+#include "omnidirectional_controllers/velocity_controller/kinematics.hpp"
 #include "omnidirectional_controllers/types.hpp"
 
 constexpr double TOLERANCE = 1e-3;

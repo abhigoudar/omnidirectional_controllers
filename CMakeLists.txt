@@ -27,6 +27,16 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp_lifecycle
   rclcpp
   tf2_msgs
+  tf2
+  yaml_cpp_vendor
+)
+
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3)
+
+include_directories(
+  include
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 find_package(ament_cmake REQUIRED)
@@ -37,7 +47,7 @@ endforeach()
 add_library(odometry SHARED)
 
 target_sources(odometry 
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/odometry.cpp
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/velocity_controller/odometry.cpp
 )
 
 target_include_directories(odometry
@@ -48,7 +58,7 @@ target_include_directories(odometry
 add_library(kinematics SHARED)
 
 target_sources(kinematics 
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/kinematics.cpp
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/velocity_controller/kinematics.cpp
 )
 
 target_include_directories(kinematics
@@ -57,8 +67,11 @@ target_include_directories(kinematics
 )
 
 add_library(${PROJECT_NAME} SHARED
-  src/omnidirectional_controller.cpp
+  src/velocity_controller/omnidirectional_controller.cpp
 )
+
+add_executable(omni_pos_controller src/position_controller/position_controller.cpp)
+ament_target_dependencies(omni_pos_controller ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -87,6 +100,14 @@ install(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
 )
 
+install(TARGETS omni_pos_controller
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY 
+  launch
+  DESTINATION share/${PROJECT_NAME})
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
@@ -96,7 +117,7 @@ if(BUILD_TESTING)
   ament_add_gmock(
     test_odometry
     test/test_odometry.cpp
-    src/odometry.cpp
+    src/velocity_controller/odometry.cpp
   )
 
   target_link_libraries(test_odometry
@@ -107,7 +128,7 @@ if(BUILD_TESTING)
   ament_add_gmock(
     test_kinematics
     test/test_kinematics.cpp
-    src/kinematics.cpp
+    src/velocity_controller/kinematics.cpp
   )
 
   target_link_libraries(test_kinematics

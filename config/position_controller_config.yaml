@@ -1,0 +1,7 @@
+world_frame: "world"
+# position_controller:
+#   rate: 50 
+  # gains:
+  #   p: [1.0, 1.0, 1.0]
+  #   i: [1.0, 1.0, 1.0]
+  #   d: [1.0, 1.0, 1.0]

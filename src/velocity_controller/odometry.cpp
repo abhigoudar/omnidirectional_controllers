@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "omnidirectional_controllers/odometry.hpp"
+#include "omnidirectional_controllers/velocity_controller/odometry.hpp"
 
 #include <cmath>
 #include <exception>

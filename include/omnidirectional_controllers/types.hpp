@@ -45,6 +45,7 @@ struct RobotPose {
   double theta;    // [rad]
 };
 
+
 }  // namespace omnidirectional_controllers
 
 #endif  // OMNIDIRECTIONAL_CONTROLLERS__TYPES_HPP_
