@@ -86,9 +86,12 @@ namespace omnidirectional_controllers{
             }
             else
             {
-                update();
-                //
-                twist_sp_pub->publish(twist_sp);
+                if(latest_pose_sp.header.stamp.sec > 1)
+                {
+                    update();
+                    //
+                    twist_sp_pub->publish(twist_sp);
+                }
             }
             auto iter_end = ::steady_clock::now();
             auto loop_dur = ::duration_cast<::microseconds>(
@@ -103,7 +106,7 @@ namespace omnidirectional_controllers{
 
             RCLCPP_INFO_THROTTLE(node->get_logger(),
                 *(node->get_clock()),
-                ::milliseconds(5000).count(),
+                ::milliseconds(10000).count(),
                 " loop duration:[%.3f]", 1e-3 * loop_dur);
         }
     }
