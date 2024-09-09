@@ -8,7 +8,7 @@ endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -26,10 +26,12 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   pluginlib
   rclcpp_lifecycle
   rclcpp
-  tf2_msgs
   tf2
+  tf2_geometry_msgs
   yaml_cpp_vendor
 )
+
+find_package(yaml-cpp REQUIRED)
 
 find_package(eigen3_cmake_module REQUIRED)
 find_package(Eigen3)
@@ -69,10 +71,6 @@ target_include_directories(kinematics
 add_library(${PROJECT_NAME} SHARED
   src/velocity_controller/omnidirectional_controller.cpp
 )
-
-add_executable(omni_pos_controller src/position_controller/position_controller.cpp)
-ament_target_dependencies(omni_pos_controller ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
 target_include_directories(${PROJECT_NAME}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -86,7 +84,6 @@ target_link_libraries(${PROJECT_NAME}
   odometry
   kinematics
 )
-
 target_compile_definitions(${PROJECT_NAME} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
 pluginlib_export_plugin_description_file(controller_interface omnidirectional_plugin.xml)
 
@@ -99,6 +96,9 @@ install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
 )
+add_executable(omni_pos_controller src/position_controller/position_controller.cpp)
+ament_target_dependencies(omni_pos_controller ${THIS_PACKAGE_INCLUDE_DEPENDS} tf2)
+target_link_libraries(omni_pos_controller ${YAML_CPP_LIBRARIES})
 
 install(TARGETS omni_pos_controller
   RUNTIME DESTINATION lib/${PROJECT_NAME}

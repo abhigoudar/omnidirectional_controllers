@@ -41,30 +41,29 @@
 
 namespace omnidirectional_controllers {
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+using StateInterfaceReferenceWrapper = std::reference_wrapper<const hardware_interface::LoanedStateInterface>;
+using CommandInterfaceReferenceWrapper = std::reference_wrapper<hardware_interface::LoanedCommandInterface>;
 
 class OmnidirectionalController : public controller_interface::ControllerInterface {
  public:
   OmnidirectionalController();
-  controller_interface::return_type init(const std::string & controller_name) override;
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
+  CallbackReturn on_init() override;
   CallbackReturn on_configure(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_activate(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_cleanup(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_error(const rclcpp_lifecycle::State & previous_state) override;
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
-  controller_interface::return_type update() override;
+  controller_interface::return_type update(const rclcpp::Time & time, const rclcpp::Duration & period) override;
   ~OmnidirectionalController();
 
  protected:
-  struct WheelHandle {
-    std::reference_wrapper<const hardware_interface::LoanedStateInterface> velocity_state;
-    std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity_command;
-  };
 
   std::vector<std::string> wheel_names_;
-  std::vector<WheelHandle> registered_wheel_handles_;
+  std::vector<StateInterfaceReferenceWrapper> registered_wheel_state_ifs_;
+  std::vector<CommandInterfaceReferenceWrapper> registered_wheel_cmd_ifs_;
 
   // Default parameters for axebot
   RobotParams robot_params_{0.1, 0.0505, 0.0};
@@ -110,6 +109,8 @@ class OmnidirectionalController : public controller_interface::ControllerInterfa
   geometry_msgs::msg::TwistStamped::SharedPtr cmd_vel_;
   double cos_gamma{0};
   double sin_gamma{0};
+
+  std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_;
 };
 
 }  // namespace omnidirectional_controllers
